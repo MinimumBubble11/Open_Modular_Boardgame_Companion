@@ -139,11 +139,6 @@ export default {
   background-color:#000;
   padding:15px 5px 20px 5px;
   align-items:center;
-  /* Background Image */
-  background-image: url('/common/images/background/background.png');
-  background-size: 200px 400px; /* Updated size */
-  background-position: center center;
-  background-repeat: no-repeat;
 }
 .back-button{width:80px;height:37px;border-radius:18px;background-color:#222;font-size:18px;color:#ccc;margin-bottom:10px;align-self:flex-start}
 .display-area{flex-direction:column;width:100%;align-items:flex-end;margin-bottom:10px}
