@@ -66,13 +66,6 @@ export default {
   /* Ensure content does not exceed screen height as scrolling is not supported */
   /* overflow: hidden; /* Might be needed if content still tries to overflow */
 
-  /* --- Background Image Styles --- */
-  /* !!! IMPORTANT: VERIFY THIS PATH AND FILENAME !!! */
-  background-image: url('/common/images/background/background.png');
-  background-size: 200px 400px;
-  background-position: center center;
-  background-repeat: no-repeat;
-  /* --- End Background Image Styles --- */
 }
 
 /* Container for all stacked content */
