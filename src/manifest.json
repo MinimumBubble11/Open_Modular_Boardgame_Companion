@@ -1,7 +1,7 @@
 {
   "package": "com.boardgame.cn",
   "name": "桌游伙伴",
-  "versionName": "1.1.1",
+  "versionName": "1.1.2",
   "versionCode": 1,
   "minPlatformVersion": 1000,
   "icon": "/common/logo.png",
