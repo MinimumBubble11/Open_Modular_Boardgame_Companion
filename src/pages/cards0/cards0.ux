@@ -39,11 +39,6 @@ export default {
   align-items:center;
   padding:15px 10px;
   background-color:#000;
-  /* Background Image */
-  background-image: url('/common/images/background/background.png');
-  background-size: 200px 400px; /* Updated size */
-  background-position: center center;
-  background-repeat: no-repeat;
 }
 .back-button{width:80px;height:37px;border-radius:18px;background-color:#222;font-size:18px;color:#ccc;align-self:flex-start;margin-bottom:10px}
 .card-display-area{flex-grow:1;width:100%;justify-content:center;align-items:center}
