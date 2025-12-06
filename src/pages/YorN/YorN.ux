@@ -1,0 +1,84 @@
+<template>
+  <div class="tool-page">
+    <input class="back-button" type="button" value="< 返回" onclick="goBack" />
+    <div class="result-display">
+      <text class="dice-number-text">{{ yesnoText }}</text>
+    </div>
+    <input class="action-button" type="button" value="查看答案" onclick="rollYesNo" />
+  </div>
+</template>
+
+<script>
+import router from "@system.router";
+import vibrator from '@system.vibrator';
+
+export default {
+  private: {
+    yesnoText: '?',
+    isSpinning: false,
+    rollTimeout: null
+  },
+  goBack() {
+    vibrator.vibrate({ mode: 'short' });
+    router.back();
+  },
+  rollYesNo() {
+    if (this.isSpinning) { return; }
+    vibrator.vibrate({ mode: 'long' });
+    this.isSpinning = true;
+    this.yesnoText = '...';
+    
+    if (this.rollTimeout) { clearTimeout(this.rollTimeout); }
+    this.rollTimeout = setTimeout(() => {
+      const randomValue = Math.random();
+      this.yesnoText = randomValue > 0.5 ? 'YES' : 'NO';
+      this.isSpinning = false;
+      this.rollTimeout = null;
+    }, 500); // 计时时间改为500毫秒
+  },
+  onDestroy() {
+     if (this.rollTimeout) { clearTimeout(this.rollTimeout); }
+  }
+}
+</script>
+
+<style>
+.tool-page{
+  flex:1;
+  flex-direction:column;
+  justify-content:space-between;
+  align-items:center;
+  padding:15px 10px;
+  background-color:#000;
+}
+.back-button{
+  width:80px;
+  height:37px;
+  border-radius:18px;
+  background-color:#222;
+  font-size:18px;
+  color:#ccc;
+  align-self:flex-start;
+}
+.result-display{
+  flex-grow:1;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  margin-bottom:20px;
+}
+.dice-number-text{
+  font-size:65px;
+  color:#fff;
+  font-weight:700;
+}
+.action-button{
+  width:130px;
+  height:50px;
+  border-radius:15px;
+  background-color:#333;
+  font-size:24px;
+  color:#4ccfff;
+  margin-bottom:50px;
+}
+</style>
