@@ -1,11 +1,11 @@
 <template>
-  <div class="tool-page">
+  <scroll class="tool-page" scroll-y="true" bounces="true">
     <input class="back-button" type="button" value="< 返回" onclick="goBack" />
     <div class="result-display">
       <text class="dice-number-text">{{ yesnoText }}</text>
     </div>
     <input class="action-button" type="button" value="查看答案" onclick="rollYesNo" />
-  </div>
+  </scroll>
 </template>
 
 <script>
@@ -16,7 +16,9 @@ export default {
   private: {
     yesnoText: '?',
     isSpinning: false,
-    rollTimeout: null
+    rollTimeout: null,
+    rollInterval: null,
+    rollCount: 0
   },
   goBack() {
     vibrator.vibrate({ mode: 'short' });
@@ -26,59 +28,85 @@ export default {
     if (this.isSpinning) { return; }
     vibrator.vibrate({ mode: 'long' });
     this.isSpinning = true;
-    this.yesnoText = '...';
-    
+    this.rollCount++;
+
+    // 清除之前的定时器
     if (this.rollTimeout) { clearTimeout(this.rollTimeout); }
+    if (this.rollInterval) { clearInterval(this.rollInterval); }
+
+    // 快速闪烁显示随机结果，持续约 300ms
+    let flickerCount = 0;
+    const maxFlicker = 6; // 闪烁次数
+    this.rollInterval = setInterval(() => {
+      flickerCount++;
+      // 随机显示 YES 或 NO
+      this.yesnoText = Math.random() > 0.5 ? 'YES' : 'NO';
+      if (flickerCount >= maxFlicker) {
+        clearInterval(this.rollInterval);
+        this.rollInterval = null;
+      }
+    }, 50); // 每50ms变化一次
+
+    // 最终结果延迟设定（与闪烁总时长基本一致）
     this.rollTimeout = setTimeout(() => {
-      const randomValue = Math.random();
-      this.yesnoText = randomValue > 0.5 ? 'YES' : 'NO';
+      if (this.rollInterval) {
+        clearInterval(this.rollInterval);
+        this.rollInterval = null;
+      }
+      // 使用纯随机决定最终结果
+      this.yesnoText = Math.random() > 0.5 ? 'YES' : 'NO';
       this.isSpinning = false;
       this.rollTimeout = null;
-    }, 500); // 计时时间改为500毫秒
+    }, 320); // 略大于最大闪烁时间（6*50=300ms）
   },
   onDestroy() {
-     if (this.rollTimeout) { clearTimeout(this.rollTimeout); }
+    if (this.rollTimeout) { clearTimeout(this.rollTimeout); }
+    if (this.rollInterval) { clearInterval(this.rollInterval); }
   }
 }
 </script>
 
 <style>
-.tool-page{
-  flex:1;
-  flex-direction:column;
-  justify-content:space-between;
-  align-items:center;
-  padding:15px 10px;
-  background-color:#000;
+.tool-page {
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 10px;
+  background-color: #000;
 }
-.back-button{
-  width:80px;
-  height:37px;
-  border-radius:18px;
-  background-color:#222;
-  font-size:18px;
-  color:#ccc;
-  align-self:flex-start;
+
+.back-button {
+  width: 80px;
+  height: 37px;
+  border-radius: 18px;
+  background-color: #222;
+  font-size: 18px;
+  color: #ccc;
+  align-self: flex-start;
 }
-.result-display{
-  flex-grow:1;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-  margin-bottom:20px;
+
+.result-display {
+  flex-grow: 1;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
 }
-.dice-number-text{
-  font-size:65px;
-  color:#fff;
-  font-weight:700;
+
+.dice-number-text {
+  font-size: 65px;
+  color: #fff;
+  font-weight: 700;
 }
-.action-button{
-  width:130px;
-  height:50px;
-  border-radius:15px;
-  background-color:#333;
-  font-size:24px;
-  color:#4ccfff;
-  margin-bottom:50px;
+
+.action-button {
+  width: 130px;
+  height: 50px;
+  border-radius: 15px;
+  background-color: #333;
+  font-size: 24px;
+  color: #4ccfff;
+  margin-bottom: 50px;
 }
 </style>

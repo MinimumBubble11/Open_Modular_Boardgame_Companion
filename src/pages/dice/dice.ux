@@ -18,6 +18,7 @@ export default {
     diceImageSrc: '/common/images/dice/骰.png',
     isSpinning: false,
     rollTimeout: null,
+    rollInterval: null,
     diceNumber: ''
   },
   goBack() {
@@ -28,10 +29,31 @@ export default {
     if (this.isSpinning) { return; }
     vibrator.vibrate({ mode: 'long' });
     this.isSpinning = true;
-    this.diceNumber = '';
+    this.diceNumber = ''; // 清空数字，后续 interval 会更新
     this.diceImageSrc = '/common/images/dice/骰轉.png';
+
     if (this.rollTimeout) { clearTimeout(this.rollTimeout); }
+    if (this.rollInterval) { clearInterval(this.rollInterval); }
+
+    // 快速随机显示数字（增强随机感）
+    let flickerCount = 0;
+    const maxFlicker = 12; // 闪烁次数
+    this.rollInterval = setInterval(() => {
+      flickerCount++;
+      // 随机生成 1-6 的数字并显示
+      const tempNum = Math.floor(Math.random() * 6) + 1;
+      this.diceNumber = tempNum; // 旋转期间显示随机数字（图片仍为旋转图）
+      if (flickerCount >= maxFlicker) {
+        clearInterval(this.rollInterval);
+        this.rollInterval = null;
+      }
+    }, 50); // 每 50ms 变化一次
+
     this.rollTimeout = setTimeout(() => {
+      if (this.rollInterval) {
+        clearInterval(this.rollInterval);
+        this.rollInterval = null;
+      }
       const result = Math.floor(Math.random() * 6) + 1;
       this.diceImageSrc = `/common/images/dice/${result}.png`;
       this.diceNumber = result;
@@ -40,7 +62,8 @@ export default {
     }, 1000);
   },
   onDestroy() {
-     if (this.rollTimeout) { clearTimeout(this.rollTimeout); }
+    if (this.rollTimeout) { clearTimeout(this.rollTimeout); }
+    if (this.rollInterval) { clearInterval(this.rollInterval); }
   }
 }
 </script>
