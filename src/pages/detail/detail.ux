@@ -24,7 +24,7 @@
 
     <!-- 开发者信息（含头像） -->
     <div class="section">
-      <text class="developer-title">developer</text>
+      <text class="developer-title">developers</text>
       <image class="avatar" src="/common/head.jpg" />
       <div class="developer-name">
         <text class="dev-char" style="color: #FF6B6B;">一</text>
@@ -32,10 +32,14 @@
         <text class="dev-char" style="color: #6BCB77;">桦</text>
         <text class="dev-char" style="color: #4D96FF;">树</text>
       </div>
+      <text class="dev-char" style="color: #FF6B6B;"></text>
+      <text class="developer-title">原作者</text>
+      <image class="avatar" src="/common/BALALALAL.jpg" />
+      <text class="section-title">BALALALAL</text>
     </div>
 
     <div class="section">
-      <text class="section-title">Version 1.4.0</text>
+      <text class="section-title" style="color: #4ae0f0;">Version 1.4.0</text>
     </div>
   </scroll>
 </template>
@@ -73,7 +77,7 @@ export default {
 
 /* 开发者信息样式 */
 .developer-title {
-  font-size: 30px;
+  font-size: 26px;
   font-weight: bold;
   color: #c1c1c1;
   margin-bottom: 5px;
