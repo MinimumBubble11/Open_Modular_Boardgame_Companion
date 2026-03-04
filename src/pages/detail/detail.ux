@@ -39,7 +39,7 @@
     </div>
 
     <div class="section">
-      <text class="section-title" style="color: #4ae0f0;">Version 1.4.0</text>
+      <text class="section-title" style="color: #4ae0f0;">Version 2.1.0</text>
     </div>
   </scroll>
 </template>
@@ -68,8 +68,8 @@ export default {
 
 /* 头像样式 */
 .avatar {
-  width: 50px;
-  height: 50px;
+  width: 55px;
+  height: 55px;
   margin-bottom: 8px;
   border-radius: 25px;      /* 圆形头像 */
   object-fit: cover;        /* 保持比例裁剪，防止变形 */

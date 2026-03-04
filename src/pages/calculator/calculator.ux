@@ -136,266 +136,7 @@ export default {
     });
   },
   
-  // 格式化最终结果（精确模式下尝试符号化简/特殊值/分数）
-  _formatResult(result, originalExpr) {
-    console.log('_formatResult called with:', result, 'exactMode:', this.exactMode, 'originalExpr:', originalExpr);
-    
-    if (this.exactMode) {
-      console.log('Exact mode is enabled');
-      
-      // 1. 先尝试符号化简原始表达式（如果包含平方根）
-      if (originalExpr && originalExpr.includes('√')) {
-        console.log('Expression contains sqrt, attempting to simplify:', originalExpr);
-        const simplified = this._simplifyExpression(originalExpr);
-        console.log('Simplified result:', simplified);
-        if (simplified) return simplified;
-      }
-      
-      // 2. 尝试特殊角度值检测（反三角函数等）
-      if (originalExpr && /(asin|acos|atan)/.test(originalExpr)) {
-        const special = this._detectSpecialAngle(result);
-        if (special) return special;
-      }
-      
-      // 3. 尝试转换为精确形式（分数/根式）
-      console.log('Trying to convert to exact form');
-      const exactResult = this._toExactForm(result);
-      console.log('Exact form result:', exactResult);
-      if (exactResult !== null) {
-        return exactResult;
-      }
-    }
-    
-    // 默认数值格式化
-    let display = 'Error';
-    if (result === Infinity || result === -Infinity) {
-      display = 'Infinity';
-    } else if (!isFinite(result) || isNaN(result)) {
-      display = '计算错误';
-    } else {
-      if (Math.abs(result) > 99999999 || (Math.abs(result) < 0.000001 && result !== 0)) {
-        display = result.toExponential(3);
-      } else {
-        const rounded = parseFloat(result.toPrecision(7));
-        display = String(rounded);
-      }
-      if (display.length > 15) {
-        display = result.toExponential(3);
-        if (display.length > 15) {
-          display = result.toExponential(2);
-          if (display.length > 15) {
-            display = '计算错误';
-          }
-        }
-      }
-    }
-    if (display === '-0') display = '0';
-    console.log('Final display value:', display);
-    return display;
-  },
-  
-  // 检测是否为特殊角度值（如 π/6, π/4 等）
-  _detectSpecialAngle(num) {
-    const tolerance = 1e-10;
-    const specials = [
-      { value: 0, expr: '0' },
-      { value: Math.PI / 6, expr: 'π/6' },
-      { value: Math.PI / 4, expr: 'π/4' },
-      { value: Math.PI / 3, expr: 'π/3' },
-      { value: Math.PI / 2, expr: 'π/2' },
-      { value: Math.PI, expr: 'π' },
-      { value: 2 * Math.PI, expr: '2π' },
-      { value: -Math.PI / 6, expr: '-π/6' },
-      { value: -Math.PI / 4, expr: '-π/4' },
-      { value: -Math.PI / 3, expr: '-π/3' },
-      { value: -Math.PI / 2, expr: '-π/2' },
-      { value: -Math.PI, expr: '-π' }
-    ];
-    for (let s of specials) {
-      if (Math.abs(num - s.value) < tolerance) {
-        return s.expr;
-      }
-    }
-    return null;
-  },
-  
-  // 尝试将数值转换为精确形式（分数）
-  _toExactForm(num) {
-    console.log('_toExactForm called with:', num);
-    if (!isFinite(num) || isNaN(num)) return null;
-    
-    // 首先检查是否为整数或常见常数
-    if (Math.abs(num - Math.round(num)) < 1e-10) {
-      return String(Math.round(num));
-    }
-    
-    // 处理常见的数学常数
-    if (Math.abs(num - PI_VALUE) < 1e-10) return 'π';
-    if (Math.abs(num - E_VALUE) < 1e-10) return 'e';
-    if (Math.abs(num + PI_VALUE) < 1e-10) return '-π';
-    if (Math.abs(num + E_VALUE) < 1e-10) return '-e';
-    
-    // 尝试分数形式（使用更严格的误差）
-    const fraction = this._toFraction(num, 1000, 1e-8);
-    console.log('Fraction form:', fraction);
-    if (fraction) return fraction;
-    
-    return null;
-  },
-  
-  // 带误差阈值的分数近似
-  _toFraction(num, maxDenominator = 1000, tolerance = 1e-8) {
-    console.log('_toFraction called with:', num);
-    if (num === 0) return '0';
-    
-    const sign = num < 0 ? -1 : 1;
-    const absNum = Math.abs(num);
-    
-    // 如果是整数，直接返回
-    if (Math.abs(Math.round(absNum) - absNum) < tolerance) {
-      return sign === 1 ? String(Math.round(absNum)) : '-' + String(Math.round(absNum));
-    }
-    
-    let bestNumerator = 0;
-    let bestDenominator = 1;
-    let bestError = Math.abs(absNum);
-    
-    for (let denominator = 1; denominator <= maxDenominator; denominator++) {
-      const numerator = Math.round(absNum * denominator);
-      const error = Math.abs(absNum - numerator / denominator);
-      
-      if (error < bestError) {
-        bestError = error;
-        bestNumerator = numerator;
-        bestDenominator = denominator;
-      }
-      
-      if (error < tolerance) {
-        const gcd = this._gcd(bestNumerator, bestDenominator);
-        const simplifiedNum = bestNumerator / gcd;
-        const simplifiedDen = bestDenominator / gcd;
-        
-        if (simplifiedDen === 1) {
-          return sign === 1 ? String(simplifiedNum) : '-' + String(simplifiedNum);
-        } else {
-          return sign === 1 ? `${simplifiedNum}/${simplifiedDen}` : `-${simplifiedNum}/${simplifiedDen}`;
-        }
-      }
-    }
-    
-    // 如果误差小于阈值，也接受（但阈值已收紧）
-    if (bestError < tolerance) {
-      const gcd = this._gcd(bestNumerator, bestDenominator);
-      const simplifiedNum = bestNumerator / gcd;
-      const simplifiedDen = bestDenominator / gcd;
-      
-      if (simplifiedDen === 1) {
-        return sign === 1 ? String(simplifiedNum) : '-' + String(simplifiedNum);
-      } else {
-        return sign === 1 ? `${simplifiedNum}/${simplifiedDen}` : `-${simplifiedNum}/${simplifiedDen}`;
-      }
-    }
-    
-    return null;
-  },
-  
-  _gcd(a, b) {
-    a = Math.round(Math.abs(a));
-    b = Math.round(Math.abs(b));
-    if (b === 0) return a;
-    return this._gcd(b, a % b);
-  },
-  
-  // 增强版表达式简化：处理平方根及内部运算
-  _simplifyExpression(expr) {
-    console.log('_simplifyExpression called with:', expr);
-    try {
-      // 安全地计算括号内表达式（替换常量为数值）
-      const evalInner = (inner) => {
-        // 替换常量为数值
-        let innerExpr = inner.replace(/π/g, PI_VALUE).replace(/e/g, E_VALUE);
-        // 注意：innerExpr 可能包含运算符和数字，但不包含函数（否则会抛出错误）
-        // 使用 Function 求值，捕获异常（如果包含函数则无法求值，返回 null）
-        try {
-          const val = new Function('return ' + innerExpr)();
-          return val;
-        } catch (e) {
-          console.log('evalInner failed:', e);
-          return null;
-        }
-      };
-      
-      // 递归简化表达式，最多迭代5次防止无限循环
-      let simplified = expr;
-      let changed = true;
-      let maxIter = 5;
-      while (changed && maxIter-- > 0) {
-        changed = false;
-        
-        // 匹配 √(...) 或 √数字
-        const sqrtRegex = /√(?:\(([^)]+)\)|(\d+(?:\.\d+)?))/g;
-        simplified = simplified.replace(sqrtRegex, (match, parenContent, num) => {
-          let arg;
-          if (parenContent !== undefined) {
-            // 尝试计算括号内表达式
-            arg = evalInner(parenContent);
-            if (arg === null) {
-              // 如果无法计算（例如包含函数），保留原样
-              return match;
-            }
-          } else {
-            arg = parseFloat(num);
-          }
-          const simplifiedSqrt = this._simplifySqrt(arg);
-          if (simplifiedSqrt !== match) {
-            changed = true;
-          }
-          return simplifiedSqrt;
-        });
-        
-        // 可以扩展其他简化规则，如合并同类项等（暂不实现）
-      }
-      
-      console.log('After simplification:', simplified, 'changed:', changed);
-      
-      // 如果简化后的表达式与原始不同，返回简化结果
-      if (simplified !== expr) {
-        return simplified;
-      }
-      
-      return null;
-    } catch (error) {
-      console.log('Error in _simplifyExpression:', error);
-      return null;
-    }
-  },
-  
-  // 简化单个平方根（提取最大平方因子）
-  _simplifySqrt(num) {
-    console.log('_simplifySqrt called with:', num);
-    if (num <= 1) return `√${num}`;
-    
-    // 寻找最大平方因子
-    let maxSquareFactor = 1;
-    let remaining = num;
-    
-    for (let factor = 2; factor * factor <= num; factor++) {
-      while (remaining % (factor * factor) === 0) {
-        maxSquareFactor *= factor;
-        remaining /= (factor * factor);
-      }
-    }
-    
-    console.log('maxSquareFactor:', maxSquareFactor, 'remaining:', remaining);
-    
-    if (maxSquareFactor === 1) {
-      return `√${remaining}`;
-    } else if (remaining === 1) {
-      return String(maxSquareFactor);
-    } else {
-      return `${maxSquareFactor}√${remaining}`;
-    }
-  },
+  // ---------- 核心计算逻辑 ----------
   
   deleteLast() {
     vibrator.vibrate({ mode: 'short' });
@@ -441,126 +182,325 @@ export default {
   evaluateExpression() {
     console.log('evaluateExpression called with expression:', this.expression);
     vibrator.vibrate({ mode: 'short' });
-    if (!this.expression) {
-      return;
-    }
-    
-    // 备份原始表达式用于符号化简
-    const originalExpr = this.expression;
-    
+    if (!this.expression) return;
+
     try {
-      // 第一步：处理特殊的函数名替换
       let expr = this.expression;
-      
-      // 先处理反三角函数，使用不同的占位符避免冲突
+
+      // 1. 验证反三角函数的参数范围（仅当参数为简单数字时）
+      this._validateArcFunctions(expr);
+
+      // 2. 使用占位符处理反三角函数，避免被普通三角函数替换误伤
       expr = expr.replace(/asin\(/g, '__ARC_SIN__(')
                  .replace(/acos\(/g, '__ARC_COS__(')
                  .replace(/atan\(/g, '__ARC_TAN__(');
-      
-      // 处理普通三角函数
+
+      // 3. 处理普通三角函数
       expr = expr.replace(/sin\(/g, 'Math.sin(')
                  .replace(/cos\(/g, 'Math.cos(')
                  .replace(/tan\(/g, 'Math.tan(');
-      
-      // 处理其他函数
+
+      // 4. 处理其他函数和常量
       expr = expr.replace(/√/g, 'Math.sqrt')
                  .replace(/log\(/g, 'Math.log10(')
-                 .replace(/ln\(/g, 'Math.log(');
-      
-      // 处理常量和运算符
-      expr = expr.replace(/π/g, '(' + PI_VALUE + ')')
+                 .replace(/ln\(/g, 'Math.log(')
+                 .replace(/π/g, '(' + PI_VALUE + ')')
                  .replace(/e(?![0-9])/g, '(' + E_VALUE + ')')
                  .replace(/E/g, '*10**')
                  .replace(/×/g, '*')
                  .replace(/÷/g, '/')
                  .replace(/\^/g, '**');
-      
-      // 现在处理反三角函数的占位符
+
+      // 5. 恢复反三角函数
       expr = expr.replace(/__ARC_SIN__\(/g, 'Math.asin(')
                  .replace(/__ARC_COS__\(/g, 'Math.acos(')
                  .replace(/__ARC_TAN__\(/g, 'Math.atan(');
-      
-      console.log('Expression after replacements:', expr);
-      
-      // 处理阶乘（增强版：支持括号表达式）
-      expr = this._processFactorialAdvanced(expr);
-      console.log('Expression after factorial processing:', expr);
-      
-      // 检查反三角函数的参数范围
-      const arcSinMatches = expr.match(/Math\.asin\(([^)]+)\)/g);
-      const arcCosMatches = expr.match(/Math\.acos\(([^)]+)\)/g);
-      
-      // 先检查参数范围，如果超出范围则直接报错
-      if (arcSinMatches || arcCosMatches) {
-        // 创建一个安全的求值函数
-        const evalFunc = new Function('Math', 'return ' + expr);
-        
-        try {
-          const result = evalFunc(Math);
-          console.log('Raw result:', result);
-          
-          // 检查结果是否为数值
-          if (isNaN(result) || !isFinite(result)) {
-            this.displayValue = '计算错误';
-            this.expression = '';
-          } else {
-            this.displayValue = this._formatResult(result, originalExpr);
-            this.expression = this.displayValue;
-          }
-        } catch (error) {
-          console.log('Error in evaluating arc functions:', error);
-          this.displayValue = '计算错误';
-        }
+
+      // 6. 处理阶乘
+      expr = this._processFactorial(expr);
+      console.log('Final expression to evaluate:', expr);
+
+      // 7. 计算表达式
+      const result = new Function('return ' + expr)();
+      console.log('Raw result:', result);
+
+      if (isNaN(result) || !isFinite(result)) {
+        this.displayValue = '计算错误';
+        this.expression = '';
       } else {
-        // 对于不包含反三角函数的表达式，直接计算
-        const result = new Function('return ' + expr)();
-        console.log('Raw result:', result);
-        
-        this.displayValue = this._formatResult(result, originalExpr);
-        this.expression = this.displayValue;
+        // 在精确模式下，根据原始表达式转换结果
+        let formatted = this._formatResult(result, this.expression);
+        this.displayValue = formatted;
+        this.expression = formatted;
       }
     } catch (error) {
       console.log('Error in evaluateExpression:', error, error.stack);
-      this.displayValue = '计算错误';
+      this.displayValue = error.message || '计算错误';
     }
   },
   
-  // 增强版阶乘处理：支持括号表达式，如 (3+2)!
-  _processFactorialAdvanced(expr) {
-    // 匹配形如 (表达式)! 或 数字! 的模式
-    // 使用递归方式处理嵌套括号
-    let processed = expr;
-    const factorialRegex = /(\([^()]+\)|\d+(?:\.\d+)?)!/g;
-    
-    // 循环替换，直到没有阶乘符号
-    while (factorialRegex.test(processed)) {
-      processed = processed.replace(factorialRegex, (match, group) => {
-        let value;
-        if (group.startsWith('(') && group.endsWith(')')) {
-          // 括号表达式，计算内部值
-          const inner = group.slice(1, -1);
-          // 替换内部常量
-          let innerExpr = inner.replace(/π/g, PI_VALUE).replace(/e/g, E_VALUE);
-          try {
-            value = new Function('return ' + innerExpr)();
-          } catch (e) {
-            throw new Error('Invalid factorial expression');
+  // 验证反三角函数参数范围（仅当参数为简单数字时）
+  _validateArcFunctions(expr) {
+    const arcFuncs = [
+      { name: 'asin', regex: /asin\(([^)]+)\)/g, domain: [-1, 1] },
+      { name: 'acos', regex: /acos\(([^)]+)\)/g, domain: [-1, 1] },
+      { name: 'atan', regex: /atan\(([^)]+)\)/g, domain: [-Infinity, Infinity] } // atan 无限制
+    ];
+
+    for (const func of arcFuncs) {
+      let match;
+      while ((match = func.regex.exec(expr)) !== null) {
+        const argStr = match[1];
+        // 仅当参数是简单数字时验证，否则跳过（最终计算会自然失败）
+        if (/^-?\d+(\.\d+)?$/.test(argStr)) {
+          const arg = parseFloat(argStr);
+          if (func.domain[0] !== -Infinity && (arg < func.domain[0] || arg > func.domain[1])) {
+            throw new Error(`${func.name} 参数超出定义域 [${func.domain[0]}, ${func.domain[1]}]`);
           }
-        } else {
-          value = parseFloat(group);
         }
-        const n = value;
-        if (n < 0 || n !== Math.floor(n) || n > MAX_FACTORIAL_INPUT) {
-          throw new Error('Invalid factorial');
-        }
-        let result = 1;
-        for (let i = 2; i <= n; i++) {
-          result *= i;
-        }
-        return result;
-      });
+      }
     }
+  },
+  
+  // 处理阶乘运算
+  _processFactorial(expr) {
+    let processed = expr;
+    const factorialRegex = /(\d+(?:\.\d+)?)!/g;
+    
+    processed = processed.replace(factorialRegex, (match, num) => {
+      const n = parseFloat(num);
+      if (n < 0 || n !== Math.floor(n) || n > MAX_FACTORIAL_INPUT) {
+        throw new Error('Invalid factorial');
+      }
+      let result = 1;
+      for (let i = 2; i <= n; i++) {
+        result *= i;
+      }
+      return result;
+    });
+    
     return processed;
+  },
+  
+  // 格式化最终结果，支持精确模式
+  _formatResult(result, originalExpr) {
+    console.log('_formatResult called with:', result, 'exactMode:', this.exactMode, 'originalExpr:', originalExpr);
+    
+    if (this.exactMode) {
+      // 如果包含平方根，尝试简化
+      if (originalExpr && originalExpr.includes('√')) {
+        const simplified = this._simplifyExpression(originalExpr);
+        if (simplified) return simplified;
+      }
+      
+      const exactResult = this._toExactForm(result, originalExpr);
+      if (exactResult !== null) {
+        return exactResult;
+      }
+    }
+    
+    let display = 'Error';
+    if (result === Infinity || result === -Infinity) {
+      display = 'Infinity';
+    } else if (!isFinite(result) || isNaN(result)) {
+      display = '计算错误';
+    } else {
+      if (Math.abs(result) > 99999999 || (Math.abs(result) < 0.000001 && result !== 0)) {
+        display = result.toExponential(3);
+      } else {
+        const rounded = parseFloat(result.toPrecision(7));
+        display = String(rounded);
+      }
+      if (display.length > 15) {
+        display = result.toExponential(3);
+        if (display.length > 15) {
+          display = result.toExponential(2);
+          if (display.length > 15) {
+            display = '计算错误';
+          }
+        }
+      }
+    }
+    if (display === '-0') display = '0';
+    console.log('Final display value:', display);
+    return display;
+  },
+  
+  // 尝试将数值转换为精确形式（整数、分数、常数）
+  _toExactForm(num, originalExpr) {
+    console.log('_toExactForm called with:', num, originalExpr);
+    if (!isFinite(num) || isNaN(num)) return null;
+
+    // 检查是否为常见反三角函数结果
+    if (originalExpr) {
+      if (originalExpr.includes('asin') || originalExpr.includes('acos') || originalExpr.includes('atan')) {
+        const exact = this._matchArcExact(num, originalExpr);
+        if (exact) return exact;
+      }
+    }
+
+    // 检查是否为整数
+    if (Math.abs(num - Math.round(num)) < 1e-10) return String(Math.round(num));
+    
+    // 检查是否为常见常数
+    if (Math.abs(num - PI_VALUE) < 1e-10) return 'π';
+    if (Math.abs(num - E_VALUE) < 1e-10) return 'e';
+    if (Math.abs(num + PI_VALUE) < 1e-10) return '-π';
+    if (Math.abs(num + E_VALUE) < 1e-10) return '-e';
+
+    // 尝试转换为分数
+    const fraction = this._toFraction(num);
+    if (fraction) return fraction;
+
+    return null;
+  },
+  
+  // 匹配常见的反三角函数值（π 的倍数）
+  _matchArcExact(num, originalExpr) {
+    const eps = 1e-10;
+    // 常见角度对应的弧度值（π 的倍数）
+    const arcValues = [
+      { value: 0, symbol: '0' },
+      { value: Math.PI / 6, symbol: 'π/6' },
+      { value: Math.PI / 4, symbol: 'π/4' },
+      { value: Math.PI / 3, symbol: 'π/3' },
+      { value: Math.PI / 2, symbol: 'π/2' },
+      { value: Math.PI, symbol: 'π' }
+    ];
+
+    for (const item of arcValues) {
+      if (Math.abs(num - item.value) < eps) {
+        return item.symbol;
+      }
+      // 检查负值
+      if (Math.abs(num + item.value) < eps) {
+        return '-' + item.symbol;
+      }
+    }
+    return null;
+  },
+  
+  // 将小数转换为分数
+  _toFraction(num, maxDenominator = 1000) {
+    console.log('_toFraction called with:', num);
+    if (num === 0) return '0';
+    
+    const sign = num < 0 ? -1 : 1;
+    const absNum = Math.abs(num);
+    
+    // 如果是整数，直接返回
+    if (Math.abs(Math.round(absNum) - absNum) < 1e-10) {
+      return sign === 1 ? String(Math.round(absNum)) : '-' + String(Math.round(absNum));
+    }
+    
+    let bestNumerator = 0;
+    let bestDenominator = 1;
+    let bestError = Math.abs(absNum);
+    
+    for (let denominator = 1; denominator <= maxDenominator; denominator++) {
+      const numerator = Math.round(absNum * denominator);
+      const error = Math.abs(absNum - numerator / denominator);
+      
+      if (error < bestError) {
+        bestError = error;
+        bestNumerator = numerator;
+        bestDenominator = denominator;
+      }
+      
+      if (error < 1e-10) {
+        const gcd = this._gcd(bestNumerator, bestDenominator);
+        const simplifiedNum = bestNumerator / gcd;
+        const simplifiedDen = bestDenominator / gcd;
+        
+        if (simplifiedDen === 1) {
+          return sign === 1 ? String(simplifiedNum) : '-' + String(simplifiedNum);
+        } else {
+          return sign === 1 ? `${simplifiedNum}/${simplifiedDen}` : `-${simplifiedNum}/${simplifiedDen}`;
+        }
+      }
+    }
+    
+    // 如果误差很小，也接受
+    if (bestError < 0.001) {
+      const gcd = this._gcd(bestNumerator, bestDenominator);
+      const simplifiedNum = bestNumerator / gcd;
+      const simplifiedDen = bestDenominator / gcd;
+      
+      if (simplifiedDen === 1) {
+        return sign === 1 ? String(simplifiedNum) : '-' + String(simplifiedNum);
+      } else {
+        return sign === 1 ? `${simplifiedNum}/${simplifiedDen}` : `-${simplifiedNum}/${simplifiedDen}`;
+      }
+    }
+    
+    return null;
+  },
+  
+  // 计算最大公约数
+  _gcd(a, b) {
+    a = Math.round(Math.abs(a));
+    b = Math.round(Math.abs(b));
+    if (b === 0) return a;
+    return this._gcd(b, a % b);
+  },
+  
+  // 简化包含平方根的表达式
+  _simplifyExpression(expr) {
+    console.log('_simplifyExpression called with:', expr);
+    try {
+      // 匹配平方根：√(数字) 或 √数字
+      const sqrtRegex = /√(?:\((\d+)\)|(\d+))/g;
+      let simplified = expr;
+      let hasSimplification = false;
+      
+      simplified = simplified.replace(sqrtRegex, (match, numWithParens, numWithoutParens) => {
+        const numStr = numWithParens || numWithoutParens;
+        console.log('Found sqrt:', match, 'extracted number:', numStr);
+        const num = parseInt(numStr, 10);
+        const simplifiedSqrt = this._simplifySqrt(num);
+        console.log('Simplified sqrt:', simplifiedSqrt);
+        if (simplifiedSqrt !== match) {
+          hasSimplification = true;
+        }
+        return simplifiedSqrt;
+      });
+      
+      console.log('After simplification:', simplified, 'hasSimplification:', hasSimplification);
+      
+      if (hasSimplification) {
+        return simplified;
+      }
+      return null;
+    } catch (error) {
+      console.log('Error in _simplifyExpression:', error);
+      return null;
+    }
+  },
+  
+  // 简化单个平方根
+  _simplifySqrt(num) {
+    console.log('_simplifySqrt called with:', num);
+    if (num <= 1) return `√${num}`;
+    
+    let maxSquareFactor = 1;
+    let remaining = num;
+    
+    for (let factor = 2; factor * factor <= num; factor++) {
+      while (remaining % (factor * factor) === 0) {
+        maxSquareFactor *= factor;
+        remaining /= (factor * factor);
+      }
+    }
+    
+    console.log('maxSquareFactor:', maxSquareFactor, 'remaining:', remaining);
+    
+    if (maxSquareFactor === 1) {
+      return `√${remaining}`;
+    } else if (remaining === 1) {
+      return String(maxSquareFactor);
+    } else {
+      return `${maxSquareFactor}√${remaining}`;
+    }
   }
 }
 </script>
