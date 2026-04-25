@@ -1,7 +1,7 @@
 {
   "package": "com.boardgame.cn",
   "name": "桌游伙伴",
-  "versionName": "2.1.0",
+  "versionName": "2.2.0",
   "versionCode": 1,
   "minPlatformVersion": 1000,
   "icon": "/common/logo.png",
@@ -25,9 +25,6 @@
       },
       "pages/dice": {
         "component": "dice"
-      },
-      "pages/cards0": {
-        "component": "cards0"
       },
       "pages/cards": {
         "component": "cards"

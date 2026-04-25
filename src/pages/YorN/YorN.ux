@@ -2,7 +2,7 @@
   <scroll class="tool-page" scroll-y="true" bounces="true">
     <input class="back-button" type="button" value="< 返回" onclick="goBack" />
     <div class="result-display">
-      <text class="dice-number-text">{{ yesnoText }}</text>
+      <text class="yesno-text">{{ yesnoText }}</text>
     </div>
     <input class="action-button" type="button" value="查看答案" onclick="rollYesNo" />
   </scroll>
@@ -67,6 +67,7 @@ export default {
 </script>
 
 <style>
+/* 基础样式（普通设备） */
 .tool-page {
   flex: 1;
   flex-direction: column;
@@ -94,10 +95,11 @@ export default {
   margin-bottom: 20px;
 }
 
-.dice-number-text {
+.yesno-text {
   font-size: 65px;
   color: #fff;
   font-weight: 700;
+  text-align: center;
 }
 
 .action-button {
@@ -108,5 +110,36 @@ export default {
   font-size: 24px;
   color: #4ccfff;
   margin-bottom: 50px;
+}
+
+/* ========== Xiaomi Watch S3 圆形小屏专用适配 ========== */
+@media (shape: circle) and (min-width: 200) and (max-width: 260) {
+  .tool-page {
+    padding: 8dp 8dp 0dp 8dp;
+  }
+
+  .back-button {
+    width: 53dp;
+    height: 23dp;
+    border-radius: 14dp;
+    font-size: 12dp;
+    margin-bottom: 8dp;
+  }
+
+  .result-display {
+    margin-bottom: 10dp;
+  }
+
+  .yesno-text {
+    font-size: 50dp;        /* 手表上缩小字体，保持可读 */
+  }
+
+  .action-button {
+    width: 90dp;
+    height: 30dp;
+    border-radius: 12dp;
+    font-size: 16dp;
+    margin-bottom: 30dp;
+  }
 }
 </style>

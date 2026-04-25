@@ -3,29 +3,29 @@
     <input class="back-button" type="button" value="< 返回" onclick="goBack" />
     <div class="section">
       <text class="section-title">原作者网页工具</text>
-      <qrcode value="https://andy5533.github.io/Open-Modular-Boardgame-Companion/PLAYGROUND/PLAYGROUND.html" style="color: #000;"></qrcode>
+      <qrcode class="qr-code" value="https://andy5533.github.io/Open-Modular-Boardgame-Companion/PLAYGROUND/PLAYGROUND.html" style="color: #000;"></qrcode>
     </div>
     <div class="separator"></div>
     <div class="section">
       <text class="section-title">原作者项目介绍网站</text>
-      <qrcode value="https://andy5533.github.io/Open-Modular-Boardgame-Companion/PLAYGROUND/PLAYGROUND3d.html" style="color: #000;"></qrcode>
+      <qrcode class="qr-code" value="https://andy5533.github.io/Open-Modular-Boardgame-Companion/PLAYGROUND/PLAYGROUND3d.html" style="color: #000;"></qrcode>
     </div>
     <div class="separator"></div>
     <div class="section">
       <text class="section-title">Github</text>
-      <qrcode value="https://github.com/MinimumBubble11/Open_Modular_Boardgame_Companion" style="color: #000;"></qrcode>
+      <qrcode class="qr-code" value="https://github.com/MinimumBubble11/Open_Modular_Boardgame_Companion" style="color: #000;"></qrcode>
     </div>
     <div class="separator"></div>
     <div class="section">
       <text class="section-title">原项目Github</text>
-      <qrcode value="https://github.com/Andy5533/Open-Modular-Boardgame-Companion" style="color: #000;"></qrcode>
+      <qrcode class="qr-code" value="https://github.com/Andy5533/Open-Modular-Boardgame-Companion" style="color: #000;"></qrcode>
       <text class="section-title"> </text>
     </div>
 
     <!-- 开发者信息（含头像） -->
     <div class="section">
       <text class="developer-title">developers</text>
-      <image class="avatar" src="/common/head.jpg" />
+      <image class="avatar" src="/common/head.png" />
       <div class="developer-name">
         <text class="dev-char" style="color: #FF6B6B;">一</text>
         <text class="dev-char" style="color: #FFD93D;">棵</text>
@@ -34,12 +34,12 @@
       </div>
       <text class="dev-char" style="color: #FF6B6B;"></text>
       <text class="developer-title">原作者</text>
-      <image class="avatar" src="/common/BALALALAL.jpg" />
+      <image class="avatar" src="/common/BALALALAL.png" />
       <text class="section-title">BALALALAL</text>
     </div>
 
     <div class="section">
-      <text class="section-title" style="color: #4ae0f0;">Version 2.1.0</text>
+      <text class="section-title" style="color: #4ae0f0;">Version 2.1.1</text>
     </div>
   </scroll>
 </template>
@@ -58,12 +58,53 @@ export default {
 </script>
 
 <style>
-.detail-page{
-  flex:1;
-  flex-direction:column;
-  background-color:#000;
-  padding:15px 10px 20px 10px;
-  align-items:center;
+.detail-page {
+  flex: 1;
+  flex-direction: column;
+  background-color: #000;
+  padding: 15px 10px 20px 10px;
+  align-items: center;
+}
+
+.back-button {
+  width: 80px;
+  height: 37px;
+  border-radius: 18px;
+  background-color: #222;
+  font-size: 18px;
+  color: #ccc;
+  margin-bottom: 20px;
+  align-self: flex-start;
+}
+
+.section {
+  width: 90%;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.section-title {
+  font-size: 20px;
+  color: #fff;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.qr-code {
+  width: 150px;
+  height: 150px;
+  background-color: #fff;
+  padding: 5px;
+  border-radius: 4px;
+}
+
+.separator {
+  width: 90%;
+  height: 1px;
+  background-color: #444;
+  margin-top: 5px;
+  margin-bottom: 20px;
 }
 
 /* 头像样式 */
@@ -71,11 +112,10 @@ export default {
   width: 55px;
   height: 55px;
   margin-bottom: 8px;
-  border-radius: 25px;      /* 圆形头像 */
-  object-fit: cover;        /* 保持比例裁剪，防止变形 */
+  border-radius: 25px;
+  object-fit: cover;
 }
 
-/* 开发者信息样式 */
 .developer-title {
   font-size: 26px;
   font-weight: bold;
@@ -90,10 +130,60 @@ export default {
   align-items: center;
 }
 
+.dev-char {
+  font-size: 22px;
+  margin: 0 2px;
+}
 
-.back-button{width:80px;height:37px;border-radius:18px;background-color:#222;font-size:18px;color:#ccc;margin-bottom:20px;align-self:flex-start}
-.section{width:90%;flex-direction:column;align-items:center;margin-bottom:15px}
-.section-title{font-size:20px;color:#fff;margin-bottom:8px;text-align:center}
-.qr-image{width:150px;height:150px;background-color:#fff;padding:5px;border-radius:4px}
-.separator{width:90%;height:1px;background-color:#444;margin-top:5px;margin-bottom:20px}
+/* ========== Xiaomi Watch S3 圆形小屏专用适配 ========== */
+@media (shape: circle) and (min-width: 200) and (max-width: 260) {
+  .detail-page {
+    padding: 8dp 8dp 16dp 8dp;
+  }
+
+  .back-button {
+    width: 53dp;
+    height: 23dp;
+    border-radius: 14dp;
+    font-size: 12dp;
+    margin-bottom: 10dp;
+  }
+
+  .section {
+    margin-bottom: 8dp;
+  }
+
+  .section-title {
+    font-size: 14dp;
+    margin-bottom: 4dp;
+  }
+
+  .qr-code {
+    width: 100dp;
+    height: 100dp;
+    padding: 3dp;
+  }
+
+  .separator {
+    margin-top: 3dp;
+    margin-bottom: 12dp;
+  }
+
+  .avatar {
+    width: 40dp;
+    height: 40dp;
+    margin-bottom: 4dp;
+    border-radius: 20dp;
+  }
+
+  .developer-title {
+    font-size: 18dp;
+    margin-bottom: 3dp;
+  }
+
+  .dev-char {
+    font-size: 16dp;
+    margin: 0 1dp;
+  }
+}
 </style>

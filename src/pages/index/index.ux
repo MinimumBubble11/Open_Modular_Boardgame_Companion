@@ -1,25 +1,21 @@
 <template>
   <scroll class="index-page" scroll-y="true" bounces="true">
-    <!-- Single container for all content -->
     <div class="main-content-stack">
-
-      <!-- Titles Section -->
       <div class="title-section">
         <text class="title-zh">开源模组化桌游伴侣（简体中文）</text>
         <text class="title-en">Open-Modular-Boardgame-Companion</text>
       </div>
 
-      <!-- Navigation Buttons Section -->
-      <div class="nav-buttons-section">
+      <!-- 固定宽度的网格容器（2列） -->
+      <div class="grid-buttons">
         <input class="nav-button" type="button" value="骰子" onclick="goToDice" />
         <input class="nav-button" type="button" value="抽卡" onclick="goToCards" />
         <input class="nav-button" type="button" value="Yes/No" onclick="goToYorN" />
         <input class="nav-button" type="button" value="计算器" onclick="goToCalc" />
-        <!-- About button moved inside the main stack -->
-        <input class="about-button" type="button" value="关于" onclick="goToDetail" />
       </div>
 
-    </div> <!-- End of .main-content-stack -->
+      <input class="about-button" type="button" value="关于" onclick="goToDetail" />
+    </div>
   </scroll>
 </template>
 
@@ -35,7 +31,7 @@ export default {
   },
   goToCards() {
     vibrator.vibrate({ mode: 'short' });
-    router.push({ uri: "/pages/cards0" });
+    router.push({ uri: "/pages/cards" });
   },
   goToCalc() {
     vibrator.vibrate({ mode: 'short' });
@@ -89,20 +85,25 @@ export default {
   color: #cccccc;
 }
 
-.nav-buttons-section {
-  width: 100%;
-  flex-direction: column;
+/* 关键：网格容器采用固定宽度（模拟计算器页面的做法） */
+.grid-buttons {
+  width: 282px;         /* 2个按钮宽度 + 左右margin + 中间margin */
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
   align-items: center;
+  margin-bottom: 30px;
 }
 
+/* 每个按钮固定宽高，并设置统一 margin（左右上下都有） */
 .nav-button {
-  width: 140px;
-  height: 55px;
-  margin-bottom: 20px;
+  width: 125px;
+  height: 50px;
   border-radius: 15px;
   background-color: #333333;
   font-size: 24px;
   color: #ffffff;
+  margin: 8px;          /* 上下左右均为 8px，保证横纵间距 */
 }
 
 .about-button {
@@ -113,7 +114,50 @@ export default {
   color: #4ccfff;
   font-size: 20px;
   text-align: center;
-  line-height: 45px; /* 调整为与高度匹配 */
-  margin-top: 30px;
+  line-height: 45px;
+}
+
+/* Xiaomi Watch S3 适配（使用 dp 单位重新计算固定宽度） */
+@media (shape: circle) and (min-width: 200) and (max-width: 260) {
+  .index-page {
+    padding: 8dp 8dp 16dp 8dp;
+  }
+
+  .title-section {
+    margin-top: 20dp;
+    margin-bottom: 12dp;
+  }
+
+  .title-zh {
+    width: 130px;
+    font-size: 16dp;
+    margin-bottom: 2dp;
+  }
+
+  .title-en {
+    font-size: 10dp;
+  }
+
+  /* 重新计算 2 个按钮在 S3 上的总宽度 */
+  .grid-buttons {
+    width: 206dp;       /* 95*2 + 8*2（左右margin总和） */
+    margin-bottom: 20dp;
+  }
+
+  .nav-button {
+    width: 90dp;
+    height: 35dp;
+    border-radius: 10dp;
+    font-size: 20dp;
+    margin: 4dp;        /* 统一 margin 4dp */
+  }
+
+  .about-button {
+    width: 80dp;
+    height: 38dp;
+    border-radius: 10dp;
+    font-size: 18dp;
+    line-height: 38dp;
+  }
 }
 </style>

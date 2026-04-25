@@ -5,12 +5,15 @@
 
     <!-- 骰子结果展示区 -->
     <div class="result-display">
-      <image id="diceImage" class="dice-image {{isSpinning ? 'spinning' : ''}}" src="{{diceImageSrc}}"></image>
-      <!-- 显示总和 -->
-      <text class="dice-number-text" show="{{!isSpinning && total !== ''}}">{{ total }}</text>
-      <!-- 显示每个骰子的点数列表（仅当结果有效且不旋转时） -->
-      <text class="detail-text" show="{{!isSpinning && diceList.length > 0}}">{{ detailString }}</text>
+      <!-- 骰子图片可点击 -->
+      <image id="diceImage" class="dice-image {{isSpinning ? 'spinning' : ''}}" 
+             src="{{diceImageSrc}}" onclick="rollDice"></image>
+      <!-- 显示总和（始终存在，无结果时透明占位） -->
+      <text class="dice-number-text" style="opacity: {{showTotal ? 1 : 0}}">{{ total }}</text>
     </div>
+
+    <!-- 详情列表（始终存在，无结果时透明占位） -->
+    <text class="detail-text" style="opacity: {{showDetail ? 1 : 0}}">{{ detailString }}</text>
 
     <!-- 骰子数量选择器 -->
     <div class="counter-row">
@@ -30,60 +33,63 @@ import vibrator from '@system.vibrator';
 
 export default {
   private: {
-    diceImageSrc: '/common/images/dice/骰.png', // 默认骰子图片
+    diceImageSrc: '/common/images/dice/骰.png',
     isSpinning: false,
     rollTimeout: null,
-    diceCount: 1,                 // 当前骰子数量（1～15）
-    total: '',                     // 掷出的总和
-    diceList: []                   // 每个骰子的点数数组
+    diceCount: 1,
+    total: '',
+    diceList: []
   },
 
-  // 计算属性：将骰子列表格式化为 "x+y+z=总和" 的字符串
   computed: {
     detailString() {
       if (this.diceList.length === 0) return '';
       const parts = this.diceList.join('+');
       return `${parts}=${this.total}`;
+    },
+    // 是否显示总和（非旋转且有结果）
+    showTotal() {
+      return !this.isSpinning && this.total !== '';
+    },
+    // 是否显示详情（非旋转且有结果）
+    showDetail() {
+      return !this.isSpinning && this.diceList.length > 0;
     }
   },
 
-  // 返回上一页
   goBack() {
     vibrator.vibrate({ mode: 'short' });
     router.back();
   },
 
-  // 增加骰子数量（不超过15）
   incrementCount() {
     vibrator.vibrate({ mode: 'short' });
     if (this.diceCount < 15) {
       this.diceCount++;
+      if (!this.isSpinning) this.diceImageSrc = '/common/images/dice/骰.png';
     }
   },
 
-  // 减少骰子数量（不低于1）
   decrementCount() {
     vibrator.vibrate({ mode: 'short' });
     if (this.diceCount > 1) {
       this.diceCount--;
+      if (!this.isSpinning) this.diceImageSrc = '/common/images/dice/骰.png';
     }
   },
 
-  // 掷骰子（无中间动画，仅等待后显示结果）
   rollDice() {
     if (this.isSpinning) return;
     vibrator.vibrate({ mode: 'long' });
 
     this.isSpinning = true;
-    this.total = '';               // 清空上次结果
+    this.total = '';
     this.diceList = [];
-    this.diceImageSrc = '/common/images/dice/骰轉.png';  // 旋转等待图片
+    this.diceImageSrc = '/common/images/dice/骰轉.png';
 
     if (this.rollTimeout) clearTimeout(this.rollTimeout);
 
-    // 延迟一定时间后生成最终结果（例如1秒）
     this.rollTimeout = setTimeout(() => {
-      // 生成最终的点数数组
       const finalList = [];
       let finalSum = 0;
       for (let i = 0; i < this.diceCount; i++) {
@@ -92,16 +98,20 @@ export default {
         finalSum += val;
       }
 
-      // 更新视图
       this.diceList = finalList;
       this.total = finalSum;
-      this.diceImageSrc = '/common/images/dice/骰.png';  // 恢复静态骰子图片
+
+      if (this.diceCount === 1) {
+        this.diceImageSrc = `/common/images/dice/${finalList[0]}.png`;
+      } else {
+        this.diceImageSrc = '/common/images/dice/骰.png';
+      }
+
       this.isSpinning = false;
       this.rollTimeout = null;
     }, 1000);
   },
 
-  // 页面销毁时清理定时器
   onDestroy() {
     if (this.rollTimeout) clearTimeout(this.rollTimeout);
   }
@@ -109,6 +119,7 @@ export default {
 </script>
 
 <style>
+/* 基础样式（普通设备，垂直布局） */
 .tool-page {
   flex: 1;
   flex-direction: column;
@@ -129,11 +140,11 @@ export default {
 }
 
 .result-display {
-  flex-grow: 1;
-  flex-direction: column;
+  flex-direction: column;   /* 普通设备垂直排列 */
   justify-content: center;
   align-items: center;
   margin-bottom: 10px;
+  width: 100%;
 }
 
 .dice-image {
@@ -142,21 +153,23 @@ export default {
 }
 
 .dice-number-text {
-  font-size: 54px;
+  font-size: 56px;
   color: #fff;
   font-weight: 700;
-  margin-top: 5px;
+  margin-top: 10px;         /* 垂直间距 */
+  width: 80px;              /* 固定宽度，避免因内容缺失导致移动 */
+  text-align: center;
 }
 
 .detail-text {
   font-size: 22px;
   color: #aaa;
-  margin-top: 4px;
   text-align: center;
-  max-width: 180px;
+  margin-bottom: 15px;
+  max-width: 240px;
+  width: 200px;             /* 固定宽度，避免移动 */
 }
 
-/* 骰子数量选择器 */
 .counter-row {
   flex-direction: row;
   justify-content: center;
@@ -191,5 +204,69 @@ export default {
   font-size: 24px;
   color: #4ccfff;
   margin-bottom: 30px;
+}
+
+/* ========== Xiaomi Watch S3 圆形小屏专用适配 ========== */
+@media (shape: circle) and (min-width: 200) and (max-width: 260) {
+  .tool-page {
+    padding: 8dp 8dp 16dp 8dp;
+  }
+
+  .back-button {
+    width: 53dp;
+    height: 23dp;
+    border-radius: 14dp;
+    font-size: 12dp;
+    margin-bottom: 8dp;
+  }
+
+  .result-display {
+    flex-direction: row;      /* 手表上改为水平排列 */
+    margin-bottom: 5dp;
+  }
+
+  .dice-image {
+    width: 80dp;
+    height: 80dp;
+  }
+
+  .dice-number-text {
+    font-size: 36dp;
+    margin-top: 0;            /* 水平排列时去除上边距 */
+    margin-left: 8dp;         /* 与骰子的间距 */
+    width: 50dp;              /* 固定宽度，避免移动 */
+  }
+
+  .detail-text {
+    font-size: 16dp;
+    max-width: 140dp;
+    width: 130dp;             /* 固定宽度 */
+    margin-bottom: 8dp;
+  }
+
+  .counter-row {
+    margin-bottom: 12dp;
+  }
+
+  .counter-btn {
+    width: 32dp;
+    height: 32dp;
+    border-radius: 8dp;
+    font-size: 22dp;
+  }
+
+  .counter-value {
+    font-size: 26dp;
+    margin: 0 12dp;
+    width: 40dp;
+  }
+
+  .action-button {
+    width: 90dp;
+    height: 30dp;
+    border-radius: 12dp;
+    font-size: 15dp;
+    margin-bottom: 20dp;
+  }
 }
 </style>
