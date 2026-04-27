@@ -39,7 +39,8 @@
     </div>
 
     <div class="section">
-      <text class="section-title" style="color: #4ae0f0;">Version 2.1.1</text>
+      <!-- 动态版本号：自动从应用信息中读取 -->
+      <text class="section-title" style="color: #4ae0f0;">Version {{appVersion}}</text>
     </div>
   </scroll>
 </template>
@@ -47,9 +48,22 @@
 <script>
 import router from "@system.router";
 import vibrator from '@system.vibrator';
+import app from '@system.app';   // 导入应用信息模块
 
 export default {
-  private: {},
+  private: {
+    appVersion: ''   // 存储自动获取的版本号
+  },
+  onInit() {
+    // 自动查询并显示当前应用版本
+    try {
+      const info = app.getInfo();
+      this.appVersion = info.versionName || '未知版本';
+    } catch (err) {
+      console.error('获取版本号失败：', err);
+      this.appVersion = '获取失败';
+    }
+  },
   goBack() {
     vibrator.vibrate({ mode: 'short' });
     router.back();
@@ -131,7 +145,7 @@ export default {
 }
 
 .dev-char {
-  font-size: 22px;
+  font-size: 27px;
   margin: 0 2px;
 }
 

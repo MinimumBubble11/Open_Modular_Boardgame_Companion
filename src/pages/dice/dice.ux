@@ -5,24 +5,28 @@
 
     <!-- 骰子结果展示区 -->
     <div class="result-display">
-      <!-- 骰子图片可点击 -->
       <image id="diceImage" class="dice-image {{isSpinning ? 'spinning' : ''}}" 
              src="{{diceImageSrc}}" onclick="rollDice"></image>
-      <!-- 显示总和（始终存在，无结果时透明占位） -->
       <text class="dice-number-text" style="opacity: {{showTotal ? 1 : 0}}">{{ total }}</text>
     </div>
 
-    <!-- 详情列表（始终存在，无结果时透明占位） -->
     <text class="detail-text" style="opacity: {{showDetail ? 1 : 0}}">{{ detailString }}</text>
 
-    <!-- 骰子数量选择器 -->
+    <!-- 骰子数量选择器（支持长按连续增减） -->
     <div class="counter-row">
-      <input class="counter-btn" type="button" value="-" onclick="decrementCount" />
+      <input class="counter-btn" type="button" value="-"
+             @click="decrementCount"
+             @longpress="onMinusLongPress"
+             @touchend="onTouchEnd"
+             @touchcancel="onTouchEnd" />
       <text class="counter-value">{{ diceCount }}</text>
-      <input class="counter-btn" type="button" value="+" onclick="incrementCount" />
+      <input class="counter-btn" type="button" value="+"
+             @click="incrementCount"
+             @longpress="onPlusLongPress"
+             @touchend="onTouchEnd"
+             @touchcancel="onTouchEnd" />
     </div>
 
-    <!-- 掷骰子按钮 -->
     <input class="action-button" type="button" value="掷骰子" onclick="rollDice" />
   </scroll>
 </template>
@@ -38,7 +42,12 @@ export default {
     rollTimeout: null,
     diceCount: 1,
     total: '',
-    diceList: []
+    diceList: [],
+    // 长按连续增减相关变量
+    plusInterval: null,
+    minusInterval: null,
+    isLongPressingPlus: false,
+    isLongPressingMinus: false
   },
 
   computed: {
@@ -47,11 +56,9 @@ export default {
       const parts = this.diceList.join('+');
       return `${parts}=${this.total}`;
     },
-    // 是否显示总和（非旋转且有结果）
     showTotal() {
       return !this.isSpinning && this.total !== '';
     },
-    // 是否显示详情（非旋转且有结果）
     showDetail() {
       return !this.isSpinning && this.diceList.length > 0;
     }
@@ -62,20 +69,63 @@ export default {
     router.back();
   },
 
+  // 普通单击增加（无上限）
   incrementCount() {
+    if (this.isLongPressingPlus) return; // 长按期间避免重复触发
     vibrator.vibrate({ mode: 'short' });
-    if (this.diceCount < 15) {
-      this.diceCount++;
-      if (!this.isSpinning) this.diceImageSrc = '/common/images/dice/骰.png';
-    }
+    this.diceCount++;
+    if (!this.isSpinning) this.diceImageSrc = '/common/images/dice/骰.png';
   },
 
+  // 普通单击减少（不低于1）
   decrementCount() {
+    if (this.isLongPressingMinus) return;
     vibrator.vibrate({ mode: 'short' });
     if (this.diceCount > 1) {
       this.diceCount--;
       if (!this.isSpinning) this.diceImageSrc = '/common/images/dice/骰.png';
     }
+  },
+
+  // 长按增加
+  onPlusLongPress() {
+    this.isLongPressingPlus = true;
+    // 先执行一次增加
+    this.incrementCount();
+    // 启动连续增加定时器（每150ms一次）
+    this.plusInterval = setInterval(() => {
+      this.diceCount++;
+      if (!this.isSpinning) this.diceImageSrc = '/common/images/dice/骰.png';
+    }, 150);
+  },
+
+  // 长按减少
+  onMinusLongPress() {
+    this.isLongPressingMinus = true;
+    this.decrementCount();
+    this.minusInterval = setInterval(() => {
+      if (this.diceCount > 1) {
+        this.diceCount--;
+        if (!this.isSpinning) this.diceImageSrc = '/common/images/dice/骰.png';
+      }
+    }, 150);
+  },
+
+  // 手指抬起时停止所有连续增减
+  onTouchEnd() {
+    if (this.plusInterval) {
+      clearInterval(this.plusInterval);
+      this.plusInterval = null;
+    }
+    if (this.minusInterval) {
+      clearInterval(this.minusInterval);
+      this.minusInterval = null;
+    }
+    // 延迟重置长按标志，避免松开后紧接着的单击被误判
+    setTimeout(() => {
+      this.isLongPressingPlus = false;
+      this.isLongPressingMinus = false;
+    }, 100);
   },
 
   rollDice() {
@@ -114,6 +164,8 @@ export default {
 
   onDestroy() {
     if (this.rollTimeout) clearTimeout(this.rollTimeout);
+    if (this.plusInterval) clearInterval(this.plusInterval);
+    if (this.minusInterval) clearInterval(this.minusInterval);
   }
 }
 </script>
@@ -140,7 +192,7 @@ export default {
 }
 
 .result-display {
-  flex-direction: column;   /* 普通设备垂直排列 */
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   margin-bottom: 10px;
@@ -156,8 +208,8 @@ export default {
   font-size: 56px;
   color: #fff;
   font-weight: 700;
-  margin-top: 10px;         /* 垂直间距 */
-  width: 80px;              /* 固定宽度，避免因内容缺失导致移动 */
+  margin-top: 10px;
+  width: 80px;
   text-align: center;
 }
 
@@ -167,7 +219,7 @@ export default {
   text-align: center;
   margin-bottom: 15px;
   max-width: 240px;
-  width: 200px;             /* 固定宽度，避免移动 */
+  width: 200px;
 }
 
 .counter-row {
@@ -221,7 +273,7 @@ export default {
   }
 
   .result-display {
-    flex-direction: row;      /* 手表上改为水平排列 */
+    flex-direction: row;
     margin-bottom: 5dp;
   }
 
@@ -232,15 +284,15 @@ export default {
 
   .dice-number-text {
     font-size: 36dp;
-    margin-top: 0;            /* 水平排列时去除上边距 */
-    margin-left: 8dp;         /* 与骰子的间距 */
-    width: 50dp;              /* 固定宽度，避免移动 */
+    margin-top: 0;
+    margin-left: 8dp;
+    width: 50dp;
   }
 
   .detail-text {
     font-size: 16dp;
     max-width: 140dp;
-    width: 130dp;             /* 固定宽度 */
+    width: 130dp;
     margin-bottom: 8dp;
   }
 

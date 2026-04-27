@@ -49,6 +49,7 @@ export default {
 </script>
 
 <style>
+/* ========== 通用样式（所有设备默认：单列垂直布局） ========== */
 .index-page {
   flex: 1;
   background-color: #000000;
@@ -85,25 +86,23 @@ export default {
   color: #cccccc;
 }
 
-/* 关键：网格容器采用固定宽度（模拟计算器页面的做法） */
+/* 容器默认单列（垂直排列） */
 .grid-buttons {
-  width: 282px;         /* 2个按钮宽度 + 左右margin + 中间margin */
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: center;
+  width: 100%;
+  flex-direction: column;
   align-items: center;
   margin-bottom: 30px;
 }
 
-/* 每个按钮固定宽高，并设置统一 margin（左右上下都有） */
+/* 按钮默认占满宽度（单列） */
 .nav-button {
-  width: 125px;
+  width: 140px;           /* 单列时可适当固定宽度，也可用百分比 */
   height: 50px;
   border-radius: 15px;
   background-color: #333333;
   font-size: 24px;
   color: #ffffff;
-  margin: 8px;          /* 上下左右均为 8px，保证横纵间距 */
+  margin: 8px 0;          /* 上下间距8px，左右无边距 */
 }
 
 .about-button {
@@ -117,41 +116,43 @@ export default {
   line-height: 45px;
 }
 
-/* Xiaomi Watch S3 适配（使用 dp 单位重新计算固定宽度） */
-@media (shape: circle) and (min-width: 200) and (max-width: 260) {
+/* ========== 圆形手表专用：覆盖为 2x2 网格布局 ========== */
+@media (shape: circle) and (device-type: watch) and (min-width: 200) and (max-width: 260) {
   .index-page {
     padding: 8dp 8dp 16dp 8dp;
   }
-
   .title-section {
     margin-top: 20dp;
     margin-bottom: 12dp;
   }
-
   .title-zh {
     width: 130px;
     font-size: 16dp;
     margin-bottom: 2dp;
   }
-
   .title-en {
     font-size: 10dp;
   }
-
-  /* 重新计算 2 个按钮在 S3 上的总宽度 */
+  
+  /* 覆盖为网格容器 */
   .grid-buttons {
-    width: 206dp;       /* 95*2 + 8*2（左右margin总和） */
+    width: 206dp;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
     margin-bottom: 20dp;
   }
-
+  
+  /* 覆盖为网格中的按钮样式 */
   .nav-button {
     width: 90dp;
     height: 35dp;
     border-radius: 10dp;
-    font-size: 20dp;
-    margin: 4dp;        /* 统一 margin 4dp */
+    font-size: 15px;
+    margin: 5dp;          /* 四边间距，形成网格间隙 */
   }
-
+  
   .about-button {
     width: 80dp;
     height: 38dp;
