@@ -1,10 +1,41 @@
 <script>
+import storage from '@system.storage';
+import vibrator from '@system.vibrator';   // 可选，如果要在全局方法中直接震动
+
 export default {
+  // 全局震动开关，所有页面可通过 this.$app.$def.vibrationEnabled 访问
+  vibrationEnabled: true,
+
   onCreate() {
-    console.log("app created")
+    console.log("app created");
+
+    // 从存储中读取震动设置
+    storage.get({
+      key: 'vibrationEnabled',
+      success: (data) => {
+        if (data !== undefined && data !== null && data !== '') {
+          this.vibrationEnabled = JSON.parse(data);
+        } else {
+          this.vibrationEnabled = true;
+        }
+        console.log('震动设置已加载:', this.vibrationEnabled);
+      },
+      fail: (err, code) => {
+        console.log('读取震动设置失败，使用默认值 true', code, err);
+        this.vibrationEnabled = true;
+      }
+    });
   },
+
   onDestroy() {
-    console.log("app destroyed")
+    console.log("app destroyed");
+  },
+
+  // 可选：全局震动方法（方便页面直接调用）
+  vibrateIfEnabled() {
+    if (this.vibrationEnabled) {
+      vibrator.vibrate({ mode: 'short' });
+    }
   }
 }
 </script>

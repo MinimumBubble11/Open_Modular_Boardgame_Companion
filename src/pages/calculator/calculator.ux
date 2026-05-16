@@ -83,7 +83,6 @@
 </template>
 
 <script>
-// 此处脚本内容完全不变（为节省篇幅省略，实际使用时请复制原 script 部分）
 import router from "@system.router";
 import vibrator from '@system.vibrator';
 import storage from '@system.storage';
@@ -109,6 +108,13 @@ export default {
     console.log('Calculator shown');
   },
   
+  // 震动辅助方法：根据全局开关决定是否震动
+  doVibrate(mode) {
+    if (this.$app.$def.vibrationEnabled !== false) {
+      vibrator.vibrate({ mode: mode });
+    }
+  },
+  
   loadExactMode() {
     storage.get({
       key: 'exactMode',
@@ -125,19 +131,19 @@ export default {
   },
   
   goBack() {
-    vibrator.vibrate({ mode: 'short' });
+    this.doVibrate('short');               // 修改：条件震动
     router.back();
   },
   
   goToHelp() {
-    vibrator.vibrate({ mode: 'short' });
+    this.doVibrate('short');               // 修改：条件震动
     router.push({
       uri: '/pages/calculator/info'
     });
   },
   
   deleteLast() {
-    vibrator.vibrate({ mode: 'short' });
+    this.doVibrate('short');               // 修改：条件震动
     if (this.expression.length > 0) {
       this.expression = this.expression.slice(0, -1);
       this.displayValue = this.expression || '0';
@@ -147,13 +153,13 @@ export default {
   },
   
   clearCalc() {
-    vibrator.vibrate({ mode: 'short' });
+    this.doVibrate('short');               // 修改：条件震动
     this.displayValue = '0';
     this.expression = '';
   },
   
   appendToExpression(char) {
-    vibrator.vibrate({ mode: 'short' });
+    this.doVibrate('short');               // 修改：条件震动
     if (this.expression.length < 30) {
       this.expression += char;
       this.displayValue = this.expression;
@@ -161,7 +167,7 @@ export default {
   },
   
   appendFunction(func) {
-    vibrator.vibrate({ mode: 'short' });
+    this.doVibrate('short');               // 修改：条件震动
     if (this.expression.length < 25) {
       this.expression += func;
       this.displayValue = this.expression;
@@ -169,7 +175,7 @@ export default {
   },
   
   appendArcFunction(func) {
-    vibrator.vibrate({ mode: 'short' });
+    this.doVibrate('short');               // 修改：条件震动
     if (this.expression.length < 25) {
       this.expression += func;
       this.displayValue = this.expression;
@@ -178,7 +184,7 @@ export default {
   
   evaluateExpression() {
     console.log('evaluateExpression called with expression:', this.expression);
-    vibrator.vibrate({ mode: 'short' });
+    this.doVibrate('short');               // 修改：条件震动
     if (!this.expression) return;
 
     try {

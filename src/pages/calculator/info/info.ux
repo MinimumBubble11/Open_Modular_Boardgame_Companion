@@ -94,8 +94,6 @@
     </div>
     <div class="separator"></div>
     
-
-    
     <!-- 底部留空 -->
     <div class="bottom-space"></div>
   </scroll>
@@ -139,13 +137,20 @@ export default {
     });
   },
   
+  // 震动辅助方法：根据全局开关决定是否震动
+  doVibrate(mode) {
+    if (this.$app.$def.vibrationEnabled !== false) {
+      vibrator.vibrate({ mode: mode });
+    }
+  },
+  
   goBack() {
-    vibrator.vibrate({ mode: 'short' });
+    this.doVibrate('short');               // 修改：条件震动
     router.back();
   },
   
   toggleExactMode(e) {
-    vibrator.vibrate({ mode: 'short' });
+    this.doVibrate('short');               // 修改：条件震动
     const newMode = e.checked;
     this.exactMode = newMode;
     console.log('精确模式设置为:', newMode);
@@ -250,7 +255,7 @@ export default {
 }
 
 .switch-label {
-  font-size: 16px;
+  font-size: 20px;
   color: #fff;
   flex: 1;
   margin-right: 10px;
@@ -265,5 +270,59 @@ export default {
 .dev-char {
   font-size: 20px;
   margin: 2px;
+}
+
+/* ========== Xiaomi Watch S3 圆形屏幕适配 ========== */
+@media (shape: circle) and (min-width: 200) and (max-width: 260) {
+  .detail-page {
+    padding: 8dp 8dp 16dp 8dp;
+  }
+  .back-button {
+    width: 53dp;
+    height: 23dp;
+    border-radius: 14dp;
+    font-size: 12dp;
+    margin-bottom: 6dp;
+  }  
+  .section {
+    width: 75%;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+  .section-title {
+    font-size: 18dp;
+    margin-bottom: 4dp;
+  }
+  .section-text {
+    font-size: 13dp;
+    line-height: 18dp;
+    margin-bottom: 3dp;
+  }
+  .section-example {
+    font-size: 15dp;
+    line-height: 18dp;
+  }
+  .separator {
+    width: 85%;
+    margin-top: 2dp;
+    margin-bottom: 12dp;
+  }
+  .bottom-space {
+    height: 25dp;
+  }
+  .switch-container {
+    width: 100%;
+    padding: 6dp 8dp;
+    margin: 4dp 0;
+  }
+  .switch-label {
+    font-size: 14dp;
+    margin-right: 8dp;
+  }
+  .mode-switch {
+    width: 40dp;
+    height: 22dp;
+  }
 }
 </style>

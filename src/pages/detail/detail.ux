@@ -40,7 +40,8 @@
 
     <div class="section">
       <!-- 动态版本号：自动从应用信息中读取 -->
-      <text class="section-title" style="color: #4ae0f0;">Version {{appVersion}}</text>
+      <text class="developer-title">版本号</text>
+      <text class="section-title" style="color: #00b3ff;">{{appVersion}}</text>
     </div>
   </scroll>
 </template>
@@ -64,8 +65,16 @@ export default {
       this.appVersion = '获取失败';
     }
   },
+
+  // 震动辅助方法：根据全局开关决定是否震动
+  doVibrate(mode) {
+    if (this.$app.$def.vibrationEnabled !== false) {
+      vibrator.vibrate({ mode: mode });
+    }
+  },
+
   goBack() {
-    vibrator.vibrate({ mode: 'short' });
+    this.doVibrate('short');               // 修改：条件震动
     router.back();
   }
 }
@@ -103,6 +112,7 @@ export default {
   color: #fff;
   margin-bottom: 8px;
   text-align: center;
+  font-weight:bold;
 }
 
 .qr-code {
@@ -126,7 +136,7 @@ export default {
   width: 55px;
   height: 55px;
   margin-bottom: 8px;
-  border-radius: 25px;
+  border-radius: 30px;
   object-fit: cover;
 }
 
@@ -146,7 +156,7 @@ export default {
 
 .dev-char {
   font-size: 27px;
-  margin: 0 2px;
+  font-weight:bold;
 }
 
 /* ========== Xiaomi Watch S3 圆形小屏专用适配 ========== */
@@ -187,7 +197,7 @@ export default {
     width: 40dp;
     height: 40dp;
     margin-bottom: 4dp;
-    border-radius: 20dp;
+    border-radius: 30dp;
   }
 
   .developer-title {
@@ -196,8 +206,7 @@ export default {
   }
 
   .dev-char {
-    font-size: 16dp;
-    margin: 0 1dp;
+    font-size: 17dp;
   }
 }
 </style>

@@ -91,10 +91,19 @@ export default {
         shuffleSharedDeck();
     }
   },
+
+  // 震动辅助方法：根据全局开关决定是否震动
+  doVibrate(mode) {
+    if (this.$app.$def.vibrationEnabled !== false) {
+      vibrator.vibrate({ mode: mode });
+    }
+  },
+
   goBack() {
-    vibrator.vibrate({ mode: 'short' });
+    this.doVibrate('short');               // 修改：条件震动
     router.back();
   },
+
   drawAndUpdateCard() {
     if (this.isDrawing) return;
     this.isDrawing = true;
@@ -102,7 +111,7 @@ export default {
       this.isDrawing = false;
     }, 200);
 
-    vibrator.vibrate({ mode: 'short' });
+    this.doVibrate('short');               // 修改：条件震动
     const drawnCardData = drawFromSharedDeck();
     if (drawnCardData) {
       this.currentCard.rank = drawnCardData.rank;

@@ -20,13 +20,22 @@ export default {
     rollInterval: null,
     rollCount: 0
   },
+
+  // 震动辅助方法：根据全局开关决定是否震动
+  doVibrate(mode) {
+    if (this.$app.$def.vibrationEnabled !== false) {
+      vibrator.vibrate({ mode: mode });
+    }
+  },
+
   goBack() {
-    vibrator.vibrate({ mode: 'short' });
+    this.doVibrate('short');           // 修改：条件震动
     router.back();
   },
+
   rollYesNo() {
     if (this.isSpinning) { return; }
-    vibrator.vibrate({ mode: 'long' });
+    this.doVibrate('long');            // 修改：条件震动（长震动）
     this.isSpinning = true;
     this.rollCount++;
 
@@ -59,6 +68,7 @@ export default {
       this.rollTimeout = null;
     }, 320); // 略大于最大闪烁时间（6*50=300ms）
   },
+
   onDestroy() {
     if (this.rollTimeout) { clearTimeout(this.rollTimeout); }
     if (this.rollInterval) { clearInterval(this.rollInterval); }

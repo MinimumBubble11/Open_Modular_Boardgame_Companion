@@ -6,7 +6,7 @@
         <text class="title-en">Open-Modular-Boardgame-Companion</text>
       </div>
 
-      <!-- 固定宽度的网格容器（2列） -->
+      <!-- 2列网格容器 -->
       <div class="grid-buttons">
         <input class="nav-button" type="button" value="骰子" onclick="goToDice" />
         <input class="nav-button" type="button" value="抽卡" onclick="goToCards" />
@@ -14,7 +14,8 @@
         <input class="nav-button" type="button" value="计算器" onclick="goToCalc" />
       </div>
 
-      <input class="about-button" type="button" value="关于" onclick="goToDetail" />
+      <!-- 设置按钮（原“关于”按钮） -->
+      <input class="setting-button" type="button" value="设置" onclick="goToSetting" />
     </div>
   </scroll>
 </template>
@@ -25,25 +26,37 @@ import vibrator from '@system.vibrator';
 
 export default {
   private: {},
+
+  // 震动辅助方法：根据全局开关决定是否震动
+  doVibrate() {
+    if (this.$app.$def.vibrationEnabled !== false) {
+      vibrator.vibrate({ mode: 'short' });
+    }
+  },
+
   goToDice() {
-    vibrator.vibrate({ mode: 'short' });
+    this.doVibrate();
     router.push({ uri: "/pages/dice" });
   },
+
   goToCards() {
-    vibrator.vibrate({ mode: 'short' });
+    this.doVibrate();
     router.push({ uri: "/pages/cards" });
   },
+
   goToCalc() {
-    vibrator.vibrate({ mode: 'short' });
+    this.doVibrate();
     router.push({ uri: "/pages/calculator" });
   },
-  goToDetail() {
-    vibrator.vibrate({ mode: 'short' });
-    router.push({ uri: "/pages/detail" });
-  },
+
   goToYorN() {
-    vibrator.vibrate({ mode: 'short' });
+    this.doVibrate();
     router.push({ uri: "/pages/YorN" });
+  },
+
+  goToSetting() {
+    this.doVibrate();
+    router.push({ uri: "/pages/setting" });
   }
 }
 </script>
@@ -96,22 +109,22 @@ export default {
 
 /* 按钮默认占满宽度（单列） */
 .nav-button {
-  width: 140px;           /* 单列时可适当固定宽度，也可用百分比 */
+  width: 75%;
   height: 50px;
   border-radius: 15px;
   background-color: #333333;
   font-size: 24px;
   color: #ffffff;
-  margin: 8px 0;          /* 上下间距8px，左右无边距 */
+  margin: 8px 0;
 }
 
-.about-button {
+.setting-button {
   width: 110px;
   height: 45px;
   border-radius: 15px;
   background-color: #333;
   color: #4ccfff;
-  font-size: 20px;
+  font-size: 22px;
   text-align: center;
   line-height: 45px;
 }
@@ -146,18 +159,18 @@ export default {
   
   /* 覆盖为网格中的按钮样式 */
   .nav-button {
-    width: 90dp;
-    height: 35dp;
+    width: 75dp;
+    height: 30dp;
     border-radius: 10dp;
-    font-size: 15px;
-    margin: 5dp;          /* 四边间距，形成网格间隙 */
+    font-size: 13px;
+    margin: 5dp;
   }
   
-  .about-button {
-    width: 80dp;
-    height: 38dp;
+  .setting-button {
+    width: 70dp;
+    height: 30dp;
     border-radius: 10dp;
-    font-size: 18dp;
+    font-size: 15dp;
     line-height: 38dp;
   }
 }

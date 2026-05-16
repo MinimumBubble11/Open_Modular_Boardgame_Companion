@@ -1,0 +1,247 @@
+<template>
+    <scroll class="setting-page" scroll-y="true" bounces="true">
+      <!-- 返回按钮 -->
+      <input class="back-button" type="button" value="&lt; 返回" onclick="goBack" />
+  
+      <!-- 震动开关 -->
+      <div class="section">
+        <div class="switch-container">
+          <text class="switch-label">震动反馈</text>
+          <switch class="mode-switch" checked="{{vibrationEnabled}}" onchange="toggleVibration"></switch>
+        </div>
+        <text class="section-text">关闭后，按钮点击、返回等操作将不再震动</text>
+      </div>
+  
+      <div class="separator"></div>
+  
+      <!-- 关于按钮（跳转到原关于页面） -->
+      <div class="section">
+        <input class="about-button" type="button" value="关于" onclick="goToAbout" />
+      </div>
+  
+      <div class="bottom-space"></div>
+    </scroll>
+  </template>
+  
+  <script>
+  import router from "@system.router";
+  import vibrator from '@system.vibrator';
+  import storage from '@system.storage';
+  
+  export default {
+    private: {
+      vibrationEnabled: true   // 默认开启震动
+    },
+  
+    onInit() {
+      this.loadVibrationSetting();
+    },
+  
+    // 从 storage 读取震动设置
+    loadVibrationSetting() {
+      storage.get({
+        key: 'vibrationEnabled',
+        success: (data) => {
+          if (data !== undefined && data !== null && data !== '') {
+            this.vibrationEnabled = JSON.parse(data);
+            // 同步到全局 app，供所有页面使用
+            this.$app.$def.vibrationEnabled = this.vibrationEnabled;
+          } else {
+            this.vibrationEnabled = true;
+            this.$app.$def.vibrationEnabled = true;
+          }
+        },
+        fail: () => {
+          this.vibrationEnabled = true;
+          this.$app.$def.vibrationEnabled = true;
+        }
+      });
+    },
+  
+    // 保存震动设置
+    saveVibrationSetting(value) {
+      storage.set({
+        key: 'vibrationEnabled',
+        value: JSON.stringify(value),
+        success: () => {
+          console.log('震动设置已保存:', value);
+        },
+        fail: (data, code) => {
+          console.log('保存震动设置失败:', code, data);
+          // 失败重试一次
+          setTimeout(() => {
+            storage.set({
+              key: 'vibrationEnabled',
+              value: JSON.stringify(value)
+            });
+          }, 100);
+        }
+      });
+    },
+  
+    // 切换震动状态
+    toggleVibration(e) {
+      const newState = e.checked;
+      this.vibrationEnabled = newState;
+      // 更新全局 app 变量
+      this.$app.$def.vibrationEnabled = newState;
+      this.saveVibrationSetting(newState);
+      // 开关操作自身震动（可选：尊重新状态）
+      if (newState) {
+        vibrator.vibrate({ mode: 'short' });
+      }
+    },
+  
+    // 返回上一页
+    goBack() {
+      // 震动前检查全局开关
+      if (this.$app.$def.vibrationEnabled) {
+        vibrator.vibrate({ mode: 'short' });
+      }
+      router.back();
+    },
+  
+    // 跳转到原关于页面 (detail.ux)
+    goToAbout() {
+      if (this.$app.$def.vibrationEnabled) {
+        vibrator.vibrate({ mode: 'short' });
+      }
+      router.push({ uri: "/pages/detail" });
+    }
+  }
+  </script>
+  
+  <style>
+  .setting-page {
+    flex: 1;
+    flex-direction: column;
+    background-color: #000;
+    padding: 15px 10px 20px 10px;
+    align-items: center;
+  }
+  
+  .back-button {
+    width: 80px;
+    height: 37px;
+    border-radius: 18px;
+    background-color: #222;
+    font-size: 18px;
+    color: #ccc;
+    margin-bottom: 20px;
+    align-self: flex-start;
+  }
+  
+  .section {
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+  
+  .switch-container {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 95%;
+    margin: 8px 0;
+    padding: 8px 12px;
+    background-color: #222;
+    border-radius: 12px;
+  }
+  
+  .switch-label {
+    font-size: 20px;
+    color: #fff;
+    flex: 1;
+    margin-right: 10px;
+    line-height: 20px;
+  }
+  
+  .mode-switch {
+    width: 45px;
+    height: 25px;
+  }
+  
+  .section-text {
+    font-size: 15px;
+    color: #ccc;
+    text-align: center;
+    margin-top: 8px;
+    line-height: 22px;
+  }
+  
+  .about-button {
+    width: 110px;
+    height: 45px;
+    border-radius: 15px;
+    background-color: #333;
+    color: #4ccfff;
+    font-size: 22px;
+    text-align: center;
+    line-height: 45px;
+  }
+  
+  .separator {
+    width: 90%;
+    height: 1px;
+    background-color: #444;
+    margin-top: 5px;
+    margin-bottom: 20px;
+  }
+  
+  .bottom-space {
+    height: 40px;
+    width: 100%;
+  }
+  
+  /* ========== Xiaomi Watch S3 圆形屏幕适配 ========== */
+  @media (shape: circle) and (min-width: 200) and (max-width: 260) {
+    .setting-page {
+      padding: 8dp 8dp 16dp 8dp;
+    }
+    .back-button {
+    width: 53dp;
+    height: 23dp;
+    border-radius: 14dp;
+    font-size: 12dp;
+    margin-bottom: 6dp;
+    }
+    .switch-container {
+      width: 100%;
+      padding: 6dp 8dp;
+      margin: 4dp 0;
+    }
+    .section {
+    width: 75%;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 15px;
+    }
+    .switch-label {
+      font-size: 14dp;
+      margin-right: 8dp;
+    }
+    .mode-switch {
+      width: 40dp;
+      height: 22dp;
+    }
+    .section-text {
+      font-size: 13dp;
+      line-height: 18dp;
+    }
+    .about-button {
+      width: 70dp;
+      height: 30dp;
+      border-radius: 10dp;
+      font-size: 15dp;
+      line-height: 38dp;
+    }
+    .separator {
+      width: 85%;
+      margin-bottom: 12dp;
+    }
+    .bottom-space {
+      height: 25dp;
+    }
+  }
+  </style>

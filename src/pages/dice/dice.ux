@@ -64,15 +64,22 @@ export default {
     }
   },
 
+  // 震动辅助方法：根据全局开关决定是否震动
+  doVibrate(mode) {
+    if (this.$app.$def.vibrationEnabled !== false) {
+      vibrator.vibrate({ mode: mode });
+    }
+  },
+
   goBack() {
-    vibrator.vibrate({ mode: 'short' });
+    this.doVibrate('short');           // 修改：条件震动
     router.back();
   },
 
   // 普通单击增加（无上限）
   incrementCount() {
-    if (this.isLongPressingPlus) return; // 长按期间避免重复触发
-    vibrator.vibrate({ mode: 'short' });
+    if (this.isLongPressingPlus) return;
+    this.doVibrate('short');           // 修改：条件震动
     this.diceCount++;
     if (!this.isSpinning) this.diceImageSrc = '/common/images/dice/骰.png';
   },
@@ -80,7 +87,7 @@ export default {
   // 普通单击减少（不低于1）
   decrementCount() {
     if (this.isLongPressingMinus) return;
-    vibrator.vibrate({ mode: 'short' });
+    this.doVibrate('short');           // 修改：条件震动
     if (this.diceCount > 1) {
       this.diceCount--;
       if (!this.isSpinning) this.diceImageSrc = '/common/images/dice/骰.png';
@@ -90,7 +97,7 @@ export default {
   // 长按增加
   onPlusLongPress() {
     this.isLongPressingPlus = true;
-    // 先执行一次增加
+    // 先执行一次增加（其中已包含震动判断）
     this.incrementCount();
     // 启动连续增加定时器（每150ms一次）
     this.plusInterval = setInterval(() => {
@@ -130,7 +137,7 @@ export default {
 
   rollDice() {
     if (this.isSpinning) return;
-    vibrator.vibrate({ mode: 'long' });
+    this.doVibrate('long');            // 修改：条件震动（长震动）
 
     this.isSpinning = true;
     this.total = '';
